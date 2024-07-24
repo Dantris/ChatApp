@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet } from "react-native";
-import { GiftedChat } from "react-native-gifted-chat";
+import { View, StyleSheet, Platform, KeyboardAvoidingView } from "react-native";
+import { Bubble, GiftedChat } from "react-native-gifted-chat";
 
 const ChatScreen = ({ route, navigation }) => {
   const { name, bgColor } = route.params;
@@ -18,23 +18,62 @@ const ChatScreen = ({ route, navigation }) => {
           name: "React Native",
           avatar: "https://placeimg.com/140/140/any",
         },
+        // image: "https://facebook.github.io/react/img/logo_og.png",
+        // You can also add a video prop:
+        // video:
+        //   "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+        // Mark the message as sent, using one tick
+        sent: true,
+        // Mark the message as received, using two tick
+        received: true,
+        // Mark the message as pending with a clock loader
+        pending: true,
+        // Any additional custom parameters are passed through
+      },
+      {
+        _id: 2,
+        text: "This is a system message",
+        createdAt: new Date(),
+        system: true,
       },
     ]);
   }, []);
 
-  const onSend = (newMessages = []) => {
-    setMessages(GiftedChat.append(messages, newMessages));
+  const onSend = (newMessages) => {
+    setMessages((previousMessages) =>
+      GiftedChat.append(previousMessages, newMessages)
+    );
+  };
+
+  const renderBubble = (props) => {
+    return (
+      <Bubble
+        {...props}
+        wrapperStyle={{
+          right: {
+            backgroundColor: "#000",
+          },
+          left: {
+            backgroundColor: "#FFF",
+          },
+        }}
+      />
+    );
   };
 
   return (
     <View style={[styles.container, { backgroundColor: bgColor }]}>
       <GiftedChat
         messages={messages}
+        renderBubble={renderBubble}
         onSend={(messages) => onSend(messages)}
         user={{
           _id: 1,
         }}
       />
+      {Platform.OS === "ios" ? (
+        <KeyboardAvoidingView behavior="height" />
+      ) : null}
     </View>
   );
 };
