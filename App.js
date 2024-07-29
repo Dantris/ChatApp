@@ -1,17 +1,16 @@
-// Importing necessary React and React Navigation components
+// Importing necessary React, React Navigation, NetInfo, and Firebase components
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { StyleSheet } from "react-native";
 import { useNetInfo } from "@react-native-community/netinfo";
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+import { initializeAuth, getReactNativePersistence } from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Import screens used in the application
 import StartScreen from "./components/Start";
 import ChatScreen from "./components/Chat";
-
-// Firebase initialization imports
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
 
 // Firebase configuration object containing keys and identifiers for Firebase services
 const firebaseConfig = {
@@ -24,20 +23,24 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase with the above configuration
-initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 // Get a Firestore instance linked to the Firebase project
-export const db = getFirestore();
+export const db = getFirestore(app);
+// Initialize Firebase Auth with persistence
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
 
 // Create a stack navigator for handling the navigation between screens
 const Stack = createNativeStackNavigator();
 
 // App component that sets up navigation and screen components
 const App = () => {
+  const netInfo = useNetInfo(); // Hook to monitor network status
+
   return (
     <NavigationContainer>
-      {/* Navigation container manages the navigation tree and contains the navigation state */}
       <Stack.Navigator initialRouteName="Start">
-        {/* Stack.Navigator organizes screens for navigation and handles transitions */}
         <Stack.Screen name="Start" component={StartScreen} />
         <Stack.Screen
           name="Chat"
@@ -49,14 +52,4 @@ const App = () => {
   );
 };
 
-// Styles for the app, currently unused but can be applied to components
-const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    width: "100%",
-    height: "100%",
-  },
-});
-
-// Export the App component as the default export of the module
 export default App;
