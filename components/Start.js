@@ -9,19 +9,33 @@ import {
   ImageBackground,
   SafeAreaView,
 } from "react-native";
+import { getAuth, signInAnonymously } from "firebase/auth";
 
+// StartScreen component that handles user input and navigation to the chat screen
 const StartScreen = ({ navigation }) => {
+  // State to hold the user's name
   const [name, setName] = useState("");
+  // Predefined background colors
   const colors = ["#090C08", "#474056", "#8A95A5", "#B9C6AE"];
+  // State to manage selected background color
   const [bgColor, setBgColor] = useState(colors[0]);
+  // Path to the background image, adjust as necessary
   const image = require("../img/BackgroundImage.png");
 
+  // Function to handle the anonymous sign-in process and navigate to Chat
+  const handlePress = () => {
+    const auth = getAuth();
+    signInAnonymously(auth)
+      .then((result) => {
+        // Navigate to the Chat screen with parameters upon successful sign-in
+        navigation.navigate("Chat", { userId: result.user.uid, name, bgColor });
+      })
+      .catch((error) => console.error("Anonymous sign-in failed", error));
+  };
+
+  // JSX to render the Start Screen UI
   return (
-    <ImageBackground
-      source={image}
-      resizeMode="cover"
-      style={styles.background}
-    >
+    <ImageBackground source={image} style={styles.background}>
       <SafeAreaView style={styles.container}>
         <View style={styles.innerContainer}>
           <Text style={styles.title}>Welcome!</Text>
@@ -45,12 +59,7 @@ const StartScreen = ({ navigation }) => {
             horizontal={true}
             style={styles.colorList}
           />
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() =>
-              navigation.navigate("Chat", { name: name, bgColor: bgColor })
-            }
-          >
+          <TouchableOpacity style={styles.button} onPress={handlePress}>
             <Text style={styles.buttonText}>Start Chatting</Text>
           </TouchableOpacity>
         </View>
@@ -59,6 +68,7 @@ const StartScreen = ({ navigation }) => {
   );
 };
 
+// StyleSheet to style various elements of the StartScreen
 const styles = StyleSheet.create({
   background: {
     flex: 1,

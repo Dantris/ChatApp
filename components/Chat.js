@@ -1,86 +1,63 @@
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Platform, KeyboardAvoidingView } from "react-native";
 import { Bubble, GiftedChat } from "react-native-gifted-chat";
+import { db } from "../App"; // Import the Firestore database instance from App.js
+import {
+  collection,
+  addDoc,
+  query,
+  orderBy,
+  onSnapshot,
+} from "firebase/firestore";
 
-const ChatScreen = ({ route, navigation }) => {
-  const { name, bgColor } = route.params;
+const ChatScreen = ({ route }) => {
+  // Retrieve params passed from navigation
+  const { userId, name, bgColor } = route.params;
+  // State to store messages
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    navigation.setOptions({ title: name });
-    setMessages([
-      {
-        _id: 1,
-        text: "Hello developer",
-        createdAt: new Date(),
-        user: {
-          _id: 2,
-          name: "React Native",
-          avatar: "https://placeimg.com/140/140/any",
-        },
-        // image: "https://facebook.github.io/react/img/logo_og.png",
-        // You can also add a video prop:
-        // video:
-        //   "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-        // Mark the message as sent, using one tick
-        sent: true,
-        // Mark the message as received, using two tick
-        received: true,
-        // Mark the message as pending with a clock loader
-        pending: true,
-        // Any additional custom parameters are passed through
-      },
-      {
-        _id: 2,
-        text: "This is a system message",
-        createdAt: new Date(),
-        system: true,
-      },
-    ]);
+    // Define the query to order messages by createdAt timestamp in descending order
+    const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
+    // Listen for real-time updates with onSnapshot
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      // Map through documents and reformat the date and merge document data
+      const messages = snapshot.docs.map((doc) => ({
+        _id: doc.id,
+        createdAt: new Date(doc.data().createdAt.seconds * 1000), // Convert Firestore timestamp to JS Date
+        ...doc.data(),
+      }));
+      setMessages(messages); // Update state with new messages
+    });
+    // Cleanup function to unsubscribe from the listener on component unmount
+    return () => unsubscribe();
   }, []);
 
-  const onSend = (newMessages) => {
-    setMessages((previousMessages) =>
-      GiftedChat.append(previousMessages, newMessages)
-    );
-  };
-
-  const renderBubble = (props) => {
-    return (
-      <Bubble
-        {...props}
-        wrapperStyle={{
-          right: {
-            backgroundColor: "#000",
-          },
-          left: {
-            backgroundColor: "#FFF",
-          },
-        }}
-      />
-    );
+  const onSend = (newMessages = []) => {
+    const message = newMessages[0]; // Get the first message from the array
+    // Add a new document to Firestore with the message data and current timestamp
+    addDoc(collection(db, "messages"), { ...message, createdAt: new Date() });
   };
 
   return (
     <View style={[styles.container, { backgroundColor: bgColor }]}>
       <GiftedChat
-        messages={messages}
-        renderBubble={renderBubble}
-        onSend={(messages) => onSend(messages)}
+        messages={messages} // Display messages from state
+        onSend={(messages) => onSend(messages)} // Handler for sending messages
         user={{
-          _id: 1,
+          _id: userId, // Current user's ID
+          name: name, // Current user's name
         }}
       />
-      {Platform.OS === "ios" ? (
-        <KeyboardAvoidingView behavior="height" />
-      ) : null}
+      {/* KeyboardAvoidingView to adjust screen when keyboard displays */}
+      {Platform.OS === "ios" && <KeyboardAvoidingView behavior="padding" />}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flex: 1, // Use flex to fill the available screen
   },
 });
 
