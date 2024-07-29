@@ -3,6 +3,7 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StyleSheet } from "react-native";
+import { useNetInfo } from "@react-native-community/netinfo";
 
 // Import screens used in the application
 import StartScreen from "./components/Start";
@@ -38,7 +39,11 @@ const App = () => {
       <Stack.Navigator initialRouteName="Start">
         {/* Stack.Navigator organizes screens for navigation and handles transitions */}
         <Stack.Screen name="Start" component={StartScreen} />
-        <Stack.Screen name="Chat" component={ChatScreen} />
+        <Stack.Screen
+          name="Chat"
+          component={ChatScreen}
+          initialParams={{ isConnected: netInfo.isConnected }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
