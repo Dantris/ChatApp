@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Platform, KeyboardAvoidingView } from "react-native";
 import { GiftedChat, InputToolbar } from "react-native-gifted-chat";
-import { db } from "../App"; // Make sure this path is correct
+import { db } from "../App"; // Ensure this path is correct
 import {
   collection,
   query,
@@ -14,12 +14,11 @@ import { useNetInfo } from "@react-native-community/netinfo";
 
 const ChatScreen = ({ route }) => {
   const { userId, name, bgColor } = route.params;
-  const netInfo = useNetInfo(); // Use the hook directly in the component
+  const netInfo = useNetInfo();
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
     let unsubscribe = () => {};
-
     if (netInfo.isConnected) {
       const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
       unsubscribe = onSnapshot(q, (snapshot) => {
@@ -34,9 +33,7 @@ const ChatScreen = ({ route }) => {
       });
     } else {
       AsyncStorage.getItem("messages").then((storedMessages) => {
-        if (storedMessages) {
-          setMessages(JSON.parse(storedMessages));
-        }
+        if (storedMessages) setMessages(JSON.parse(storedMessages));
       });
     }
 
@@ -44,7 +41,7 @@ const ChatScreen = ({ route }) => {
   }, [netInfo.isConnected]);
 
   const onSend = async (newMessages = []) => {
-    if (netInfo.isConnected && newMessages.length > 0) {
+    if (netInfo.isConnected) {
       const message = newMessages[0];
       await addDoc(collection(db, "messages"), {
         ...message,
