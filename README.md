@@ -18,7 +18,7 @@ This mobile messaging application is built with React Native. It offers a user-f
 ## Installation
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/haleytolar/Chat-App
+   git clone https://github.com/Dantris/ChatApp.git
 
 ## Installation
 
