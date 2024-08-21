@@ -1,16 +1,24 @@
-// Importing necessary React, React Navigation, NetInfo, and Firebase components
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { useNetInfo } from "@react-native-community/netinfo";
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import {
+  getFirestore,
+  disableNetwork,
+  enableNetwork,
+} from "firebase/firestore";
+import { LogBox, Alert } from "react-native";
+import { useNetInfo } from "@react-native-community/netinfo";
+import { getStorage } from "firebase/storage";
 import { initializeAuth, getReactNativePersistence } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Import screens used in the application
-import StartScreen from "./components/Start";
-import ChatScreen from "./components/Chat";
+import Welcome from "./components/Start";
+import Chat from "./components/Chat";
+
+// Suppress specific logs related to AsyncStorage being extracted from React Native core
+LogBox.ignoreLogs(["AsyncStorage has been extracted from"]);
 
 // Firebase configuration object containing keys and identifiers for Firebase services
 const firebaseConfig = {
@@ -24,29 +32,54 @@ const firebaseConfig = {
 
 // Initialize Firebase with the above configuration
 const app = initializeApp(firebaseConfig);
-// Get a Firestore instance linked to the Firebase project
-export const db = getFirestore(app);
-// Initialize Firebase Auth with persistence
+
+// Initialize Firebase Auth with AsyncStorage for persistence
 const auth = initializeAuth(app, {
   persistence: getReactNativePersistence(AsyncStorage),
 });
 
-// Create a stack navigator for handling the navigation between screens
+// Initialize Cloud Firestore and get a reference to the service
+const db = getFirestore(app);
+
+// Initialize Firebase Storage
+const storage = getStorage(app);
+
+// Create the navigator for handling screen transitions
 const Stack = createNativeStackNavigator();
 
-// App component that sets up navigation and screen components
+/**
+ * The main App component that manages the navigation and network status.
+ * It initializes Firebase services and manages offline/online state for Firestore.
+ */
 const App = () => {
-  const netInfo = useNetInfo(); // Hook to monitor network status
+  const connectionStatus = useNetInfo(); // Hook to monitor network status
+
+  useEffect(() => {
+    // Effect to handle network status changes
+    if (connectionStatus.isConnected === false) {
+      Alert.alert("Connection Lost!");
+      disableNetwork(db); // Disable Firestore network access when offline
+    } else if (connectionStatus.isConnected === true) {
+      enableNetwork(db); // Enable Firestore network access when online
+    }
+  }, [connectionStatus.isConnected]);
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Start">
-        <Stack.Screen name="Start" component={StartScreen} />
-        <Stack.Screen
-          name="Chat"
-          component={ChatScreen}
-          initialParams={{ isConnected: netInfo.isConnected }}
-        />
+      <Stack.Navigator initialRouteName="Welcome">
+        {/* Define the Welcome screen as the initial route */}
+        <Stack.Screen name="Welcome" component={Welcome} />
+        {/* Define the Chat screen, passing necessary props including connection status and Firebase services */}
+        <Stack.Screen name="Chat">
+          {(props) => (
+            <Chat
+              isConnected={connectionStatus.isConnected}
+              db={db}
+              storage={storage}
+              {...props}
+            />
+          )}
+        </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   );

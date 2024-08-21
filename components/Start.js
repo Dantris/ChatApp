@@ -4,133 +4,196 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
-  FlatList,
   ImageBackground,
-  SafeAreaView,
+  TouchableOpacity,
+  Alert,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { getAuth, signInAnonymously } from "firebase/auth";
 
-// StartScreen component that handles user input and navigation to the chat screen
-const StartScreen = ({ navigation }) => {
-  // State to hold the user's name
-  const [name, setName] = useState("");
-  // Predefined background colors
-  const colors = ["#090C08", "#474056", "#8A95A5", "#B9C6AE"];
-  // State to manage selected background color
-  const [bgColor, setBgColor] = useState(colors[0]);
-  // Path to the background image, adjust as necessary
-  const image = require("../img/BackgroundImage.png");
+/**
+ * The Welcome component is the initial screen where users can enter their name,
+ * select a background color, and sign in anonymously to access the chat screen.
+ */
+const Welcome = ({ navigation }) => {
+  const auth = getAuth(); // Initialize Firebase authentication
+  const [name, setName] = useState(""); // State to hold the user's name input
+  const [background, setBackground] = useState("#FFFFFF"); // State to hold the selected background color
 
-  // Function to handle the anonymous sign-in process and navigate to Chat
-  const handlePress = () => {
-    const auth = getAuth();
+  /**
+   * Function to sign in the user anonymously using Firebase Auth.
+   * On successful sign-in, it navigates to the Chat screen.
+   */
+  const signInUser = () => {
     signInAnonymously(auth)
       .then((result) => {
-        // Navigate to the Chat screen with parameters upon successful sign-in
-        navigation.navigate("Chat", { userId: result.user.uid, name, bgColor });
+        // Navigate to Chat screen with user details and background color
+        navigation.navigate("Chat", {
+          userID: result.user.uid,
+          name: name,
+          background: background,
+        });
+        Alert.alert("Signed in Successfully!");
       })
-      .catch((error) => console.error("Anonymous sign-in failed", error));
+      .catch((error) => {
+        Alert.alert("Unable to sign in, try later again.");
+      });
   };
 
-  // JSX to render the Start Screen UI
   return (
-    <ImageBackground source={image} style={styles.background}>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.innerContainer}>
-          <Text style={styles.title}>Welcome!</Text>
-          <TextInput
-            style={styles.textInput}
-            value={name}
-            onChangeText={setName}
-            placeholder="Type your username here"
-            placeholderTextColor="#757083"
-          />
-          <Text style={styles.label}>Choose Background Color</Text>
-          <FlatList
-            data={colors}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                onPress={() => setBgColor(item)}
-                style={[styles.colorOption, { backgroundColor: item }]}
-              />
-            )}
-            keyExtractor={(item) => item}
-            horizontal={true}
-            style={styles.colorList}
-          />
-          <TouchableOpacity style={styles.button} onPress={handlePress}>
-            <Text style={styles.buttonText}>Start Chatting</Text>
-          </TouchableOpacity>
+    // Dismiss the keyboard when the user taps outside of the input field
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <ImageBackground
+        source={require("../img/BackgroundImage.png")} // Background image for the welcome screen
+        style={styles.imageBackground}
+        resizeMode="cover"
+      >
+        <View style={styles.container}>
+          <Text style={styles.title}>Chat App</Text>
+
+          <View style={styles.innerContainer}>
+            <TextInput
+              style={styles.textInput}
+              value={name}
+              onChangeText={setName} // Update the name state as the user types
+              placeholder="Your name" // Placeholder text for the input field
+            />
+
+            <View style={styles.colorChoiceContainer}>
+              <Text style={styles.colorChoiceText}>
+                Choose background color
+              </Text>
+              <View style={styles.colorChoiceButtons}>
+                {/* Background color selection buttons */}
+                <TouchableOpacity
+                  style={[
+                    styles.colorChoice,
+                    { backgroundColor: "#090C08" },
+                    background === "#090C08" && styles.selectedColor,
+                  ]}
+                  onPress={() => setBackground("#090C08")}
+                />
+                <TouchableOpacity
+                  style={[
+                    styles.colorChoice,
+                    { backgroundColor: "#474056" },
+                    background === "#474056" && styles.selectedColor,
+                  ]}
+                  onPress={() => setBackground("#474056")}
+                />
+                <TouchableOpacity
+                  style={[
+                    styles.colorChoice,
+                    { backgroundColor: "#8A95A5" },
+                    background === "#8A95A5" && styles.selectedColor,
+                  ]}
+                  onPress={() => setBackground("#8A95A5")}
+                />
+                <TouchableOpacity
+                  style={[
+                    styles.colorChoice,
+                    { backgroundColor: "#B9C6AE" },
+                    background === "#B9C6AE" && styles.selectedColor,
+                  ]}
+                  onPress={() => setBackground("#B9C6AE")}
+                />
+              </View>
+            </View>
+
+            {/* Button to start the chat by signing in anonymously */}
+            <TouchableOpacity
+              style={styles.startChattingButton}
+              onPress={signInUser}
+            >
+              <Text style={styles.startChattingButtonText}>Start Chatting</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </SafeAreaView>
-    </ImageBackground>
+      </ImageBackground>
+    </TouchableWithoutFeedback>
   );
 };
 
-// StyleSheet to style various elements of the StartScreen
+/**
+ * Styles for the Welcome screen components.
+ */
 const styles = StyleSheet.create({
-  background: {
+  imageBackground: {
     flex: 1,
-    width: "100%",
-    height: "100%",
   },
   container: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "space-evenly",
     alignItems: "center",
+    backgroundColor: "transparent", // Keep it transparent to show the ImageBackground
   },
   innerContainer: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 20,
-    width: "80%",
+    width: "84%",
     alignItems: "center",
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    shadowColor: "black",
-    shadowOffset: { height: 2, width: 2 },
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "600",
-    marginBottom: 20,
+    justifyContent: "space-between",
+    backgroundColor: "#FFFFFF", // Set background color to white for the input area
+    padding: 20,
+    borderRadius: 10,
   },
   textInput: {
-    fontSize: 18,
-    width: "100%",
-    borderBottomWidth: 1,
-    borderBottomColor: "#757083",
-    marginBottom: 20,
-    padding: 10,
-  },
-  label: {
-    fontSize: 16,
-    color: "#757083",
-    marginBottom: 10,
-  },
-  colorOption: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginHorizontal: 10,
-  },
-  colorList: {
-    marginBottom: 20,
-  },
-  button: {
-    backgroundColor: "#757083",
     width: "100%",
     padding: 15,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 8,
+    borderWidth: 1,
+    fontSize: 16,
+    fontWeight: "300",
+    color: "#757083",
+    opacity: 0.5,
+    marginTop: 15,
+    marginBottom: 15,
   },
-  buttonText: {
-    color: "white",
+  title: {
+    fontSize: 45,
+    fontWeight: "600",
+    color: "#FFFFFF",
+    marginBottom: 20,
+  },
+  colorChoiceText: {
+    fontSize: 16,
+    fontWeight: "300",
+    color: "#757083",
+    textAlign: "left",
+    alignSelf: "flex-start",
+    marginBottom: 10,
+  },
+  colorChoiceContainer: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  colorChoiceButtons: {
+    flexDirection: "row",
+    alignSelf: "flex-start",
+  },
+  colorChoice: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    marginRight: 15,
+    borderColor: "white",
+    borderWidth: 3,
+  },
+  selectedColor: {
+    borderColor: "white",
+    borderWidth: 3,
+  },
+  startChattingButton: {
+    backgroundColor: "#757083",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 5,
+    marginTop: 20,
+  },
+  startChattingButtonText: {
     fontSize: 16,
     fontWeight: "600",
+    color: "#FFFFFF",
   },
 });
 
-export default StartScreen;
+export default Welcome;
