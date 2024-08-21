@@ -49,7 +49,7 @@ This mobile messaging application is built with React Native. It offers a user-f
 Run the following command to start the Expo development server:
 ```bash
 npx expo start
-
+```
 ## Usage
 
 ### Running on an Emulator
