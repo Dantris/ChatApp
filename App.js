@@ -12,6 +12,14 @@ import { useNetInfo } from "@react-native-community/netinfo";
 import { getStorage } from "firebase/storage";
 import { initializeAuth, getReactNativePersistence } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  FIREBASE_API_KEY,
+  FIREBASE_AUTH_DOMAIN,
+  FIREBASE_PROJECT_ID,
+  FIREBASE_STORAGE_BUCKET,
+  FIREBASE_MESSAGING_SENDER_ID,
+  FIREBASE_APP_ID,
+} from "@env";
 
 // Import screens used in the application
 import Welcome from "./components/Start";
@@ -22,12 +30,12 @@ LogBox.ignoreLogs(["AsyncStorage has been extracted from"]);
 
 // Firebase configuration object containing keys and identifiers for Firebase services
 const firebaseConfig = {
-  apiKey: "AIzaSyASUNBOzMS_k-JD5hzvx2tSl6Al749fe8I",
-  authDomain: "chatappcf-704ca.firebaseapp.com",
-  projectId: "chatappcf-704ca",
-  storageBucket: "chatappcf-704ca.appspot.com",
-  messagingSenderId: "50675208426",
-  appId: "1:50675208426:web:75d5ebf31e83adb46a8793",
+  apiKey: FIREBASE_API_KEY,
+  authDomain: FIREBASE_AUTH_DOMAIN,
+  projectId: FIREBASE_PROJECT_ID,
+  storageBucket: FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: FIREBASE_MESSAGING_SENDER_ID,
+  appId: FIREBASE_APP_ID,
 };
 
 // Initialize Firebase with the above configuration
